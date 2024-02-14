@@ -10,5 +10,5 @@ dist/
 venv/
 *.egg-info/
 .idea/
-
+*.env
 data/
