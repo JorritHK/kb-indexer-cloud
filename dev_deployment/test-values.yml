@@ -1,0 +1,50 @@
+global:
+  postgresqlEnabled: false
+  elasticsearchEnabled: true
+
+kms_generic:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  image:
+    pullPolicy: Always
+  base_path: kms
+  debug: true
+  security:
+    secret_key: "random_insecure_key"
+    allowed_hosts: "*"
+    csrf_trusted_origins: "http://127.0.0.1:8080"
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+        nginx.ingress.kubernetes.io/add-base-url: "true"
+    hosts:
+      - host: localhost
+        paths:
+          - path: /kms(/|$)(.*)
+            pathType: ImplementationSpecific
+    tls:
+      - secretName: localhost
+        hosts:
+          - localhost
+indexer:
+  security:
+    github_api_token: "TOKEN"
+    kaggle_username: "USER"
+    kaggle_key: "KEY"
+
+  resources:
+   limits:
+     cpu: 100m
+     memory: 128Mi
+   requests:
+     cpu: 100m
+     memory: 128Mi
+
+  replicaCount: 1
+  image:
+    pullPolicy: Always
+
+  persistence:
+    enabled: true
