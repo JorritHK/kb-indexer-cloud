@@ -10,7 +10,12 @@ from swagger_server.models.job_configuration import JobConfiguration  # noqa: E5
 from swagger_server.models.record import Record  # noqa: E501
 from swagger_server import util
 
+import datetime
+import uuid
 
+from swagger_server.db_config import db
+
+from flask import jsonify
 def indexers_get():  # noqa: E501
     """List all available indexers.
 
@@ -58,7 +63,15 @@ def jobs_get():  # noqa: E501
 
     :rtype: List[Job]
     """
-    return 'do some magic!'
+    jobs_cursor = db.jobs.find({})
+    jobs_list = list(jobs_cursor)
+    
+    # Convert MongoDB ObjectId() to string for JSON serialization
+    for job in jobs_list:
+        job['_id'] = str(job['_id'])
+    
+    # Using jsonify instead of converting to Job as defined in models, since there are extra fields set not specified in the schema
+    return jsonify(jobs_list)
 
 
 def jobs_job_id_delete(job_id):  # noqa: E501
@@ -97,6 +110,32 @@ def jobs_post(body):  # noqa: E501
 
     :rtype: InlineResponse201
     """
-    if connexion.request.is_json:
-        body = JobConfiguration.from_dict(connexion.request.get_json())  # noqa: E501
-    return 'do some magic!'
+    # if connexion.request.is_json:
+    #     body = JobConfiguration.from_dict(connexion.request.get_json())  # noqa: E501
+            
+    if connexion.requestis_json:
+        body = connexion.request.get_json()
+        command = None
+        
+        if 'command' in body:
+            command = body['command']
+        elif 'jobConfiguration' in body:
+            command = "ls" # TODO convert jobConfiguration to command
+            body.update({'generatedCommand' : command})
+
+        if command:
+            job_id = str(uuid.uuid4())
+            body.update({
+                "_id": job_id,
+                "creationTimestamp": datetime.utcnow().isoformat(),
+                "status": "initializing",
+            })
+
+            db.jobs.insert_one(body)
+
+            return InlineResponse201(jobId=job_id), 201
+        
+        return Error(code=400, message="Invalid request body, missing command or jobConfiguration"), 400
+    else:
+        return Error(code=400, message="Invalid, request body is not json "), 400
+

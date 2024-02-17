@@ -1,0 +1,4 @@
+endpoints are  at http://localhost:8080/smartsawhuman/kb-indexer/1.0.0/
+
+so for example the swagger ui is at http://localhost:8080/smartsawhuman/kb-indexer/1.0.0/ui/
+
