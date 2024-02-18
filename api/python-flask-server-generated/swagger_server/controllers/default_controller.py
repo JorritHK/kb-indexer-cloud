@@ -113,7 +113,7 @@ def jobs_post(body):  # noqa: E501
     # if connexion.request.is_json:
     #     body = JobConfiguration.from_dict(connexion.request.get_json())  # noqa: E501
             
-    if connexion.requestis_json:
+    if connexion.request.is_json:
         body = connexion.request.get_json()
         command = None
         
@@ -127,13 +127,13 @@ def jobs_post(body):  # noqa: E501
             job_id = str(uuid.uuid4())
             body.update({
                 "_id": job_id,
-                "creationTimestamp": datetime.utcnow().isoformat(),
+                "creationTimestamp": datetime.datetime.utcnow().isoformat(),
                 "status": "initializing",
             })
 
             db.jobs.insert_one(body)
 
-            return InlineResponse201(jobId=job_id), 201
+            return InlineResponse201(job_id=job_id), 201
         
         return Error(code=400, message="Invalid request body, missing command or jobConfiguration"), 400
     else:
