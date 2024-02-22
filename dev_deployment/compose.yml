@@ -8,7 +8,10 @@ services:
       - DATA_DIR=$DATA_DIR
       - ELASTICSEARCH_USERNAME=$ELASTICSEARCH_USERNAME
       - ELASTICSEARCH_PASSWORD=$ELASTICSEARCH_PASSWORD
-      - ELASTICSEARCH_HOST=dev_deployment_elastic_backend_1:9200
+      - ELASTICSEARCH_HOST=$ELASTICSEARCH_HOST
+      - KAGGLE_USERNAME=$KAGGLE_USERNAME
+      - KAGGLE_KEY=$KAGGLE_KEY
+      - GITHUB_API_TOKEN=$GITHUB_API_TOKEN
   elastic_backend:
     image: elasticsearch:8.12.1
     networks:
@@ -37,7 +40,25 @@ services:
           memory: 25m
     image: centos:7
     command: "sysctl -w vm.max_map_count=262144"
-
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ${PWD}/config:/etc/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - kb-indexer-network
+  elasticsearch_exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
+    command:
+     - '--es.uri=http://elastic_backend:9200'
+    restart: always
+    ports:
+    - "9114:9114"
+    networks:
+      - kb-indexer-network
 networks:
   kb-indexer-network: {}
 
