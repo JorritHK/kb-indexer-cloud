@@ -14,7 +14,7 @@ import datetime
 import uuid
 
 from swagger_server.db_config import db
-
+from swagger_server.k8s_job_creator import create_kubernetes_job
 from flask import jsonify
 def indexers_get():  # noqa: E501
     """List all available indexers.
@@ -132,6 +132,13 @@ def jobs_post(body):  # noqa: E501
             })
 
             db.jobs.insert_one(body)
+
+            #TODO spawn kubernetes job or chronjob
+            docker_image = "kb-indexer:latest"
+            
+            create_kubernetes_job(job_id, [command], docker_image)
+
+
 
             return InlineResponse201(job_id=job_id), 201
         

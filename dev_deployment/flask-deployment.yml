@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-flask-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-flask-server
+  template:
+    metadata:
+      labels:
+        app: python-flask-server
+    spec: #TODO fix this is stupid
+      containers:
+      - name: python-flask-server
+        image: docker.io/library/python-flask-server-local:latest 
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-flask-server
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30000
+  selector:
+    app: python-flask-server
