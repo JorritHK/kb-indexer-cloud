@@ -8,7 +8,7 @@ VALUES_FILE := ./dev_deployment/test-values.yml
 FLASK_DOCKER := python-flask-server-local
 CONFIG_FILES := ./dev_deployment/flask-deployment.yml ./dev_deployment/mongodb-deployment.yml 
 # ./dev_deployment/dashboard-deployment.yml
-
+PROM_CONFIG := ./dev_deployment/prometheus-deployment.yml
 # Kubernetes test env setup rule
 k8: flask-docker start-microk8s save-and-import-flask-image apply-configs prometheus
 	@echo "Deployment completed successfully."
@@ -35,7 +35,7 @@ prometheus:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	helm repo update
 	kubectl create namespace monitoring
-	helm install prometheus prometheus-community/prometheus --namespace monitoring
+	helm install -f $(PROM_CONFIG) prometheus prometheus-community/prometheus --namespace monitoring
 
 # Build the Flask Docker image
 flask-docker: 

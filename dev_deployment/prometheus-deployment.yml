@@ -1,0 +1,8 @@
+server:
+  image:
+    repository: prom/prometheus
+    tag: latest
+  service:
+    type: NodePort # Change to loadbalancer when working with AWS
+    port: 9090
+    nodePort: 30090
