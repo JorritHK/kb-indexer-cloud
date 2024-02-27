@@ -10,12 +10,12 @@ CONFIG_FILES := ./dev_deployment/flask-deployment.yml ./dev_deployment/mongodb-d
 # ./dev_deployment/dashboard-deployment.yml
 
 # Kubernetes test env setup rule
-k8: flask-docker start-microk8s save-and-import-flask-image apply-configs
+k8: flask-docker start-microk8s save-and-import-flask-image apply-configs prometheus
 	@echo "Deployment completed successfully."
 
 # Start MicroK8s and ensure it's ready
 start-microk8s:
-	# Check if the Kubernetes cluster is accessible
+# Check if the Kubernetes cluster is accessible
 	@kubectl cluster-info > /dev/null 2>&1 || (echo "Kubernetes cluster is not accessible"; \
 		echo "Attempting to start MicroK8s cluster..."; \
 		sudo microk8s start; \
@@ -23,13 +23,19 @@ start-microk8s:
 		echo "MicroK8s cluster started successfully."; \
 		echo "Configuring kubectl to use MicroK8s..."; \
 		sudo microk8s config > ~/.kube/config; \
-		echo "kubectl is now configured to use MicroK8s.")
+		echo "kubectl is now configured to use MicroK8s."; \
+	)
 
 # Apply Kubernetes configurations
 apply-configs:
 	@echo "Applying Kubernetes configurations..."
 	$(foreach file,$(CONFIG_FILES),kubectl apply -f $(file) --namespace $(NAMESPACE);)
 
+prometheus:
+	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+	helm repo update
+	kubectl create namespace monitoring
+	helm install prometheus prometheus-community/prometheus --namespace monitoring
 
 # Build the Flask Docker image
 flask-docker: 
