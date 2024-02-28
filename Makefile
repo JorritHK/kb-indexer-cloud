@@ -10,7 +10,8 @@ CONFIG_FILES := ./dev_deployment/flask-deployment.yml ./dev_deployment/mongodb-d
 # ./dev_deployment/dashboard-deployment.yml
 
 # Kubernetes test env setup rule
-k8: flask-docker start-microk8s save-and-import-flask-image apply-configs prometheus
+k8: flask-docker start-microk8s save-and-import-flask-image apply-configs 
+# prometheus
 	@echo "Deployment completed successfully."
 
 # Start MicroK8s and ensure it's ready
@@ -31,11 +32,11 @@ apply-configs:
 	@echo "Applying Kubernetes configurations..."
 	$(foreach file,$(CONFIG_FILES),kubectl apply -f $(file) --namespace $(NAMESPACE);)
 
-prometheus:
-	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-	helm repo update
-	kubectl create namespace monitoring
-	helm install prometheus prometheus-community/prometheus --namespace monitoring
+# prometheus:
+# 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+# 	helm repo update
+# 	kubectl create namespace monitoring
+# 	helm install prometheus prometheus-community/prometheus --namespace monitoring
 
 # Build the Flask Docker image
 flask-docker: 
@@ -48,9 +49,6 @@ save-and-import-flask-image:
 	@echo "Saving Flask Docker image to tarball and importing into MicroK8s"
 	docker save $(FLASK_DOCKER) > $(FLASK_DOCKER).tar
 	microk8s ctr image import $(FLASK_DOCKER).tar
-	@echo "Verifying that the Flask Docker image is present in MicroK8s..."
-	@microk8s ctr image list | grep $(FLASK_DOCKER) || (echo "Image not found in MicroK8s" && exit 1)
-
 
 tree: 
 	tree -I 'indexers|__pycache__'
