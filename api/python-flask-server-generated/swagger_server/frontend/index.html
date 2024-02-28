@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Management Interface</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Job Management</h2>
+    <button class="btn btn-primary mb-3 float-right" id="createJobBtn">Create Job</button>
+    <div id="jobsList" class="mt-3"></div>
+</div>
+
+<!-- Create Job Modal -->
+<div class="modal fade" id="createJobModal" tabindex="-1" role="dialog" aria-labelledby="createJobModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createJobModalLabel">Create New Job</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="createJobForm">
+          <div class="form-group">
+            <label for="jobType">Job Type</label>
+            <select class="form-control" id="jobType">
+              <option value="manual">Manual</option>
+              <option value="auto">Automatic</option>
+            </select>
+          </div>
+          <div class="form-group" id="manualFields">
+            <label for="commandInput">Command</label>
+            <input type="text" class="form-control" id="commandInput" placeholder="Enter command">
+            <div class="form-check mt-2">
+              <input type="checkbox" class="form-check-input" id="repeatCheck">
+              <label class="form-check-label" for="repeatCheck">Repeat</label>
+            </div>
+            <!-- Repeat options, hidden by default -->
+            <div id="repeatOptions" class="mt-2" style="display: none;">
+              <label for="repeatFrequency">Repeat Frequency</label>
+              <input type="text" class="form-control" id="repeatFrequency" placeholder="e.g., every 5 minutes">
+            </div>
+          </div>
+          <!-- Placeholder for automatic job configuration -->
+          <div class="form-group" id="autoFields" style="display: none;">
+            <!-- Automatic fields go here -->
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="submitJob">Submit Job</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Load jobs
+    loadJobs();
+
+    // Show Create Job Modal
+    $('#createJobBtn').click(function() {
+        $('#createJobModal').modal('show');
+    });
+
+    // Toggle between Manual and Auto fields based on job type selection
+    $('#jobType').change(function() {
+        if ($(this).val() === 'manual') {
+            $('#manualFields').show();
+            $('#autoFields').hide();
+        } else {
+            $('#manualFields').hide();
+            $('#autoFields').show();
+        }
+    });
+
+    // Toggle repeat options based on the checkbox
+    $('#repeatCheck').change(function() {
+        if ($(this).is(':checked')) {
+            $('#repeatOptions').show();
+        } else {
+            $('#repeatOptions').hide();
+        }
+    });
+
+    // Submit job
+    $('#submitJob').click(function() {
+        submitJob();
+    });
+
+    function loadJobs() {
+    axios.get('/jobs')
+        .then(function(response) {
+            var jobsList = $('#jobsList');
+            jobsList.empty(); // Clear current list
+            response.data.forEach(function(job) {
+                var jobElement = $('<div class="card mt-2"><div class="card-body">' +
+                    '<h5 class="card-title">Job ID: ' + job._id + '</h5>' +
+                    '<p class="card-text">Status: ' + job.status + '</p>' +
+                    '</div></div>');
+                jobsList.append(jobElement);
+            });
+        })
+        .catch(function(error) {
+            console.error("Error loading jobs:", error.response ? error.response.data : error);
+            alert("Failed to load jobs. Check console for details.");
+        });
+}
+
+function submitJob() {
+    var jobType = $('#jobType').val();
+    var command = $('#commandInput').val();
+    var repeat = $('#repeatCheck').is(':checked');
+    var repeatFrequency = $('#repeatFrequency').val();
+
+    // Construct job payload
+    var payload = {
+        type: jobType,
+        command: command,
+    };
+
+    // Add repeat information if applicable
+    if (repeat) {
+        payload.repeat = repeat;
+        payload.repeatFrequency = repeatFrequency;
+    }
+
+    axios.post('/jobs', payload)
+        .then(function(response) {
+            $('#createJobModal').modal('hide');
+            loadJobs(); // Refresh job list
+        })
+        .catch(function(error) {
+            console.error("Error submitting job:", error.response ? error.response.data : error);
+            alert("Failed to submit job. Check console for details.");
+        });
+}
+});
+</script>
+</body>
+</html>
