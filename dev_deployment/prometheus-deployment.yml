@@ -1,8 +1,19 @@
-server:
+grafana:
   image:
-    repository: prom/prometheus
+    repository: grafana/grafana
     tag: latest
   service:
     type: NodePort # Change to loadbalancer when working with AWS
-    port: 9090
-    nodePort: 30090
+    port: 3000
+    nodePort: 30091
+  deploymentStrategy:
+    type: Recreate
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: hostpath
+    accessModes:
+    - ReadWriteOnce
+    size: 1Gi
+    finalizers:
+    - kubernetes.io/pvc-protection  

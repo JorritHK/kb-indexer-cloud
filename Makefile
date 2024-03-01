@@ -6,7 +6,7 @@ NAMESPACE := default
 HELM_CHART_PACKAGE := ./dev_deployment/kms-generic-helm-charts-0.1.1.tgz
 VALUES_FILE := ./dev_deployment/test-values.yml
 FLASK_DOCKER := python-flask-server-local
-CONFIG_FILES := ./dev_deployment/flask-deployment.yml ./dev_deployment/mongodb-deployment.yml 
+CONFIG_FILES := ./dev_deployment/flask-deployment.yml ./dev_deployment/mongodb-deployment.yml
 # ./dev_deployment/dashboard-deployment.yml
 PROM_CONFIG := ./dev_deployment/prometheus-deployment.yml
 # Kubernetes test env setup rule
@@ -35,7 +35,7 @@ prometheus:
 	helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 	helm repo update
 	kubectl create namespace monitoring
-	helm install -f $(PROM_CONFIG) prometheus prometheus-community/prometheus --namespace monitoring
+	helm install -f $(PROM_CONFIG) prometheus prometheus-community/kube-prometheus-stack --namespace monitoring
 
 # Build the Flask Docker image
 flask-docker: 
